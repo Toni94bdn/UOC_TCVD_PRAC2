@@ -1,0 +1,101 @@
+---
+title: "pra2_2"
+author: "Toni Forcada"
+date: "4/1/2022"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r, echo=FALSE}
+load('rent_data.RData')
+```
+
+```{r, echo=FALSE}
+summary(rent_data)
+```
+
+```{r, echo=FALSE}
+#Primer de tot ho passarem ambdos atributs a majúscules
+rent_data$location <- toupper(rent_data$location)
+rent_data$premium <- toupper(rent_data$premium.)
+rent_data$premium.<- NULL
+
+unique(rent_data$location)
+unique(rent_data$premium)
+```
+
+```{r, echo=FALSE}
+#Posterioment convertim els valors valor a numérics
+newValue <- 0
+for (value in unique(rent_data$premium))
+{
+  rent_data$premium[rent_data$premium==value]<- toString(newValue)
+
+  newValue <- newValue + 1
+}
+
+newValue <- 0
+for (value in unique(rent_data$location))
+{
+  rent_data$location[rent_data$location==value]<- toString(newValue)
+
+  newValue <- newValue + 1
+}
+
+#Finalment convertim ambdos columnes a tipus integer
+rent_data$location <- as.numeric(rent_data$location)
+rent_data$premium <- as.numeric(rent_data$premium)
+unique(rent_data$location)
+unique(rent_data$premium)
+```
+
+
+```{r, echo=FALSE}
+  corr_matrix <- data.frame(attribute = character(), correlation = numeric())
+  
+  for (col.name in colnames(rent_data)){
+    corr_matrix[nrow(corr_matrix) + 1,] = list(col.name,cor(rent_data[c('price')], rent_data[c(col.name)], use="complete.obs"))
+  }
+```
+
+```{r, echo=FALSE}
+#Comrpoveml a normalitat
+hist(rent_data$location)
+hist(rent_data$surface)
+hist(rent_data$rooms)
+hist(rent_data$bathrooms)
+```
+
+
+```{r, echo=FALSE}
+if (!require('rpart')) install.packages('rpart'); library('rpart')
+
+#primer creem dos subest de test i train
+
+sample <- sample.int(n = nrow(rent_data), size = floor(.70*nrow(rent_data)), replace = F)
+train <- rent_data[sample, ]
+test  <- rent_data[-sample, ]
+
+#Procedmin a crear models de regressió per a estimar el preu i entrenem fent servir les dades de train:
+model <- rpart(price ~ surface + bathrooms + rooms+ location, method = "anova", data = train)
+summary(model)
+plot(model, uniform = TRUE,
+          main = "Price tree using attributes")
+text(model, use.n = TRUE, cex = .7)
+
+```
+
+```{r, echo=FALSE}
+
+#Executem la validació
+error <- data.frame(pred = predict(model,newdata=test), actual = test$price)
+mean((error$actual - error$pred)^2)
+
+#Mirem com queda distrbuït l'error:
+boxplot(error$actual - error$pred,ylab = "error")
+
+```

@@ -1,0 +1,115 @@
+---
+title: "pra2"
+author: "Toni Forcada"
+date: "4/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+options(OutDec=".")
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Aquesta és el fitxer .rmd amb tot el codi en R utilitzat per a l'anàlisis del dataset "barcelona_rents" obtingut en la pràctica 1 a partir de les dades extretes mitjançant web scrapping del portal habitaclia.es.
+
+```{r,echo=FALSE}
+rent_data <- read.csv("barcelona_rents.csv", header= T, sep=",")
+head(rent_data)
+```
+
+
+
+
+```{r,echo=FALSE}
+sapply(rent_data, class)
+```
+
+```{r,echo=FALSE}
+rent_data <- rent_data[,-1,drop = FALSE]
+sapply(rent_data, class)
+
+```
+```{r}
+rent_data$surface_price_rate <- sub(".","",rent_data$surface_price_rate,fixed = TRUE)
+rent_data$surface_price_rate <- sub(",",".",rent_data$surface_price_rate)
+rent_data$surface_price_rate = as.double(rent_data$surface_price_rate)
+```
+
+
+```{r}
+summary(rent_data)
+
+```
+```{r}
+nrow(rent_data)
+
+rent_data <- na.omit(rent_data)
+summary(rent_data)
+
+nrow(rent_data)
+
+```
+
+```{r}
+rent_data[rent_data$bathrooms==0,]
+```
+
+```{r}
+summary(rent_data)
+```
+```{r}
+nrow(rent_data)
+rent_data = rent_data[!(is.na(rent_data$location) | rent_data$location==""), ]
+rent_data = rent_data[!(is.na(rent_data$premium) | rent_data$premium==""), ]
+nrow(rent_data)
+```
+
+```{r}
+boxplot(rent_data$surface,ylab = "surface")
+boxplot(rent_data$surface_price_rate,ylab = "surface_price_rate")
+boxplot(rent_data$bathrooms,ylab = "bathrooms")
+boxplot(rent_data$price,ylab = "price")
+```
+
+```{r}
+#Primer de tot tractem l'atribut 'bathrooms'
+#Creem un nou atribut bathrooms surface a fi de detectar els outliers.
+rent_data$bathrooms_surface_rate = rent_data$bathrooms/rent_data$surface
+
+boxplot(rent_data$bathrooms_surface_rate,ylab = "bathrooms_surface_rate")
+#Observem com tenim outliers clars. Procedim a eliminar-los.
+nrow(rent_data)
+rent_data = rent_data[-which(rent_data$bathrooms_surface_rate %in% boxplot.stats(rent_data$bathrooms_surface_rate)$out),]
+rent_data$bathrooms_surface_rate <- NULL
+nrow(rent_data)
+```
+```{r}
+#Ara ens toca repetir el procés per a l'atribut 'surface'
+boxplot(rent_data$surface,ylab = "surface")
+#Observem com tenim outliers clars. Procedim a eliminar-los.
+nrow(rent_data)
+rent_data = rent_data[-which(rent_data$surface %in% boxplot.stats(rent_data$surface)$out),]
+nrow(rent_data)
+```
+```{r}
+#Ara ens toca repetir el procés per a l'atribut 'surface_price_rate'
+boxplot(rent_data$surface_price_rate,ylab = "surface_price_rate")
+#Observem com tenim outliers clars. Procedim a eliminar-los.
+nrow(rent_data)
+rent_data = rent_data[-which(rent_data$surface_price_rate %in% boxplot.stats(rent_data$surface_price_rate)$out),]
+nrow(rent_data)
+```
+
+
+```{r}
+#Ara ens toca repetir el procés per a l'atribut 'price'
+boxplot(rent_data$price,ylab = "price")
+#Observem com tenim outliers clars. Procedim a eliminar-los.
+nrow(rent_data)
+rent_data = rent_data[-which(rent_data$price %in% boxplot.stats(rent_data$price)$out),]
+nrow(rent_data)
+```
+
